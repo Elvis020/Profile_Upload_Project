@@ -55,12 +55,12 @@ jobs:
       env:
           POSTGRES_DB: users
       run: |
-        psql -h localhost -d users -U postgres 
+        psql -h localhost -d users -U postgres --password password
     - name: Set up test db
       env:
           POSTGRES_DB: test-fastapi-test
       run: |
-        psql -h localhost -d test-fastapi-test -U postgres
+        psql -h localhost -d test-fastapi-test -U postgres --password password
     - name: Test with pytest
       run: |
         pytest
