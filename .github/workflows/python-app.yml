@@ -24,7 +24,6 @@ jobs:
         # Provide the password for postgres
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: password
         ports:
           - 5432:5432
         # Set health checks to wait until postgres has started
@@ -54,13 +53,15 @@ jobs:
     - name: Set up primary db
       env:
           POSTGRES_DB: users
+          POSTGRES_PASSWORD: password
       run: |
-        psql -h localhost -d users -U postgres --password password
+        psql -h localhost -d users -U postgres
     - name: Set up test db
       env:
           POSTGRES_DB: test-fastapi-test
+          POSTGRES_PASSWORD: password
       run: |
-        psql -h localhost -d test-fastapi-test -U postgres --password password
+        psql -h localhost -d test-fastapi-test -U postgres
     - name: Test with pytest
       run: |
         pytest
