@@ -1,17 +1,22 @@
+import os
+from pathlib import Path
+
 import pytest
+import sqlalchemy as sa
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from starlette.config import Config
-import sqlalchemy as sa
 from starlette.testclient import TestClient
 
 from app import app, get_db
 from db import engine, Base
 
-config = Config('../.env')
-USER = config('DB_USER')
-PASSWORD = config('DB_PASSWORD')
-DB_TABLE = config('TEST_DB_NAME')
+env_path = Path('.') / '.env'
+load_dotenv(dotenv_path=env_path)
+
+USER = os.getenv('DB_USER')
+PASSWORD = os.getenv('DB_PASSWORD')
+DB_TABLE = os.getenv('TEST_DB_NAME')
 
 SQLALCHEMY_DATABASE_URL = f"postgresql://{USER}:{PASSWORD}@localhost/{DB_TABLE}"
 
@@ -93,4 +98,4 @@ class TestAnotherUsers:
     def test_delete_user(self, client):
         response = client.delete("/users/1", headers={"X-Token": "coneofsilence"})
         assert response.status_code == 204
-        assert len(client.get("/users").json())== 0
+        assert len(client.get("/users").json()) == 0
