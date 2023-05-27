@@ -1,5 +1,6 @@
 from fastapi import FastAPI, status, Depends, HTTPException
 from sqlalchemy.orm import Session
+from starlette.responses import RedirectResponse
 
 from db import Base, engine, SessionLocal
 from models.User import UserModel
@@ -17,12 +18,22 @@ def get_db():
         db.close()
 
 
-@app.get("/users", status_code=status.HTTP_200_OK)
+@app.get(
+    "/",
+    description="Docs",
+    tags=["Users"],
+    response_class=RedirectResponse,
+)
+def home():
+    return RedirectResponse("/docs")
+
+
+@app.get("/users", tags=["Users"],status_code=status.HTTP_200_OK)
 def get_all_users(db: Session = Depends(get_db)):
     return db.query(UserModel).all()
 
 
-@app.get("/user/{user_id}", status_code=status.HTTP_200_OK)
+@app.get("/users/{user_id}", tags=["Users"],status_code=status.HTTP_200_OK)
 def get_user(user_id: int, db: Session = Depends(get_db)):
     user = db.query(UserModel).filter(UserModel.id == user_id).first()
     if not user:
@@ -30,7 +41,7 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
     return user
 
 
-@app.post("/users", status_code=status.HTTP_201_CREATED)
+@app.post("/users", tags=["Users"],status_code=status.HTTP_201_CREATED)
 def create_user(user: UserSchema, db: Session = Depends(get_db)):
     new_user = UserModel(name=user.name, email=user.email)
     db.add(new_user)
@@ -39,7 +50,7 @@ def create_user(user: UserSchema, db: Session = Depends(get_db)):
     return new_user
 
 
-@app.put("/users/{user_id}", status_code=status.HTTP_202_ACCEPTED)
+@app.put("/users/{user_id}", tags=["Users"],status_code=status.HTTP_202_ACCEPTED)
 def update_user(user_id: int, user: UserSchema, db: Session = Depends(get_db)):
     db.query(UserModel).filter(UserModel.id == user_id).update({
         'name': user.name,
@@ -49,7 +60,7 @@ def update_user(user_id: int, user: UserSchema, db: Session = Depends(get_db)):
     return 'User details updated successfully'
 
 
-@app.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+@app.delete("/users/{user_id}", tags=["Users"],status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(user_id: int, db: Session = Depends(get_db)):
     db.query(UserModel).filter(UserModel.id == user_id).delete(synchronize_session=False)
     db.commit()
