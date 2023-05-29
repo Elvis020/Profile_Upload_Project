@@ -28,12 +28,12 @@ def home():
     return RedirectResponse("/docs")
 
 
-@app.get("/users", tags=["Users"],status_code=status.HTTP_200_OK)
+@app.get("/users", tags=["Users"], status_code=status.HTTP_200_OK)
 def get_all_users(db: Session = Depends(get_db)):
     return db.query(UserModel).all()
 
 
-@app.get("/users/{user_id}", tags=["Users"],status_code=status.HTTP_200_OK)
+@app.get("/users/{user_id}", tags=["Users"], status_code=status.HTTP_200_OK)
 def get_user(user_id: int, db: Session = Depends(get_db)):
     user = db.query(UserModel).filter(UserModel.id == user_id).first()
     if not user:
@@ -41,7 +41,7 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
     return user
 
 
-@app.post("/users", tags=["Users"],status_code=status.HTTP_201_CREATED)
+@app.post("/users", tags=["Users"], status_code=status.HTTP_201_CREATED)
 def create_user(user: UserSchema, db: Session = Depends(get_db)):
     new_user = UserModel(name=user.name, email=user.email)
     db.add(new_user)
@@ -50,7 +50,7 @@ def create_user(user: UserSchema, db: Session = Depends(get_db)):
     return new_user
 
 
-@app.put("/users/{user_id}", tags=["Users"],status_code=status.HTTP_202_ACCEPTED)
+@app.put("/users/{user_id}", tags=["Users"], status_code=status.HTTP_202_ACCEPTED)
 def update_user(user_id: int, user: UserSchema, db: Session = Depends(get_db)):
     db.query(UserModel).filter(UserModel.id == user_id).update({
         'name': user.name,
@@ -60,8 +60,11 @@ def update_user(user_id: int, user: UserSchema, db: Session = Depends(get_db)):
     return 'User details updated successfully'
 
 
-@app.delete("/users/{user_id}", tags=["Users"],status_code=status.HTTP_204_NO_CONTENT)
+@app.delete("/users/{user_id}", tags=["Users"], status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(user_id: int, db: Session = Depends(get_db)):
-    db.query(UserModel).filter(UserModel.id == user_id).delete(synchronize_session=False)
+    user = db.query(UserModel).filter(UserModel.id == user_id)
+    if not user.first():
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail=f'User with id {user_id} is not available')
+    user.delete(synchronize_session=False)
     db.commit()
     return 'Successfully deleted user'

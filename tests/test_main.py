@@ -1,25 +1,14 @@
-import os
-from pathlib import Path
-
 import pytest
 import sqlalchemy as sa
-from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from starlette.testclient import TestClient
 
 from app import app, get_db
 from db import engine, Base
+from settings import settings
 
-env_path = Path('.') / '.env'
-load_dotenv(dotenv_path=env_path)
-
-USER = os.getenv('DB_USER')
-PASSWORD = os.getenv('DB_PASSWORD')
-DB_TABLE = os.getenv('TEST_DB_NAME')
-
-SQLALCHEMY_DATABASE_URL = f"postgresql://{USER}:{PASSWORD}@localhost/{DB_TABLE}"
-
+SQLALCHEMY_DATABASE_URL = settings.TEST_DATABASE_URL
 test_engine = create_engine(SQLALCHEMY_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
 
