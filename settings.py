@@ -1,10 +1,12 @@
 import os
-from pathlib import Path
 
 from dotenv import load_dotenv
 
-env_path = Path('.') / '.env'
+base_path = os.path.dirname(__file__)
+env_path = os.path.abspath(os.path.join(base_path, '.env'))
 load_dotenv(dotenv_path=env_path)
+
+print(env_path)
 
 
 class Settings:
