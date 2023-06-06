@@ -1,3 +1,5 @@
+from typing import Optional
+
 from fastapi import UploadFile, FastAPI, File
 from fastapi import status, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -45,6 +47,7 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 
 @app.post("/users", tags=["Users"], status_code=status.HTTP_201_CREATED)
 async def create_user(user: UserInputModel, image: UploadFile = File(None), db: Session = Depends(get_db)):
+    print(user)
     new_user = await create_user_object(user, image)
     if new_user is not None:
         db.add(new_user)

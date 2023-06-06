@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 import sqlalchemy as sa
 from fastapi import File
+from requests_toolbelt import MultipartEncoder
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from starlette.testclient import TestClient
@@ -58,12 +59,17 @@ def client(session):
 
 @pytest.fixture()
 def create_fake_user(client):
+    base_path = os.path.dirname(__file__)
+    image_path = os.path.abspath(os.path.join(base_path, 'tmp/test_image.jpg'))
+    _test_upload_file = Path(image_path)
+    _files = {'image': _test_upload_file.open('rb')}
     return client.post(
         "/users",
         json={
             "name": "testUser",
             "email": "test@user.com"
-        }
+        },
+        files=_files
     )
 
 
@@ -73,33 +79,35 @@ class TestAnotherUsers:
         assert response.status_code == 200
         assert response.json() == []
 
+    @pytest.mark.skip
     def test_create_user_with_no_image(self, create_fake_user, client):
-        response = client.get('/users')
+        response = create_fake_user
         print(response.json())
 
     # @pytest.mark.skip
     def test_create_user(self, client):
-        # base_path = os.path.dirname(__file__)
-        # image_path = os.path.abspath(os.path.join(base_path, 'tmp/test_image.jpg'))
-        user = {
-            "name": "testUser",
-            "email": "test@user.com"
-        }
-        # files = {'image': (image_path, open(image_path, 'rb'))}
-        # response = client.post('/users', json=data, files=files)
-
-        # with open(image_path, "wb") as f:
-        #     response = client.post("/users", json=data, files={"file": ("image", f, "image/jpg")})
-        #     print(response.json(), response.status_code)
-
         base_path = os.path.dirname(__file__)
         image_path = os.path.abspath(os.path.join(base_path, 'tmp/test_image.jpg'))
-        _test_upload_file = Path(image_path)
-        _files = {'image': _test_upload_file.open('rb')}
-        response = client.post('/users', json=user, files=_files)
-        print()
-        print(response.status_code)
+        user = {"name": "testUser", "email": "test@user.com"}
+        _files = MultipartEncoder(fields={'image': (image_path, open(image_path, 'rb'))})
+        headers = {"Content-Type": "multipart/form-data"}
+        response = client.post('/users', json=user, data=_files, headers=headers)
         print(response.json())
+
+        # base_path = os.path.dirname(__file__)
+        # image_path = os.path.abspath(os.path.join(base_path, 'tmp/test_image.jpg'))
+        # with open(image_path, "rb") as f:
+        #     response = client.post("/users", json=user, files={"file": ("image", f, "image/jpg")})
+        #     print(response.json(), response.status_code)
+
+        # base_path = os.path.dirname(__file__)
+        # image_path = os.path.abspath(os.path.join(base_path, 'tmp/test_image.jpg'))
+        # _test_upload_file = Path(image_path)
+        # _files = {'image': _test_upload_file.open('rb')}
+        # response = client.post('/users', json=user, files=_files)
+
+        # print(response.status_code)
+        # print(response.json())
         # assert response.status_code == HTTPStatus.CREATED
         # assert response.json() == {
         #     "id": 1,
