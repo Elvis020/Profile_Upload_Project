@@ -1,3 +1,4 @@
+import json
 import os
 from http import HTTPStatus
 from pathlib import Path
@@ -88,33 +89,19 @@ class TestAnotherUsers:
     def test_create_user(self, client):
         base_path = os.path.dirname(__file__)
         image_path = os.path.abspath(os.path.join(base_path, 'tmp/test_image.jpg'))
-        user = {"name": "testUser", "email": "test@user.com"}
-        _files = MultipartEncoder(fields={'image': (image_path, open(image_path, 'rb'))})
-        headers = {"Content-Type": "multipart/form-data"}
-        response = client.post('/users', json=user, data=_files, headers=headers)
+        _test_upload_file = Path(image_path)
+        _files = {'image': _test_upload_file.open('rb')}
+        # _files = {"image": ("image", image_path)}
+
+        # headers = {"Content-Type": "application/json"}
+        headers = {"Content-Type": "multipart/form-data;boundary='simple boundary'"}
+
+        user = {"name": "testUser", "email": "test@user.com","image":None}
+        # res = {'user': user}
+
+        response = client.post('/users', headers=headers, files=_files, json=user)
         print(response.json())
-
-        # base_path = os.path.dirname(__file__)
-        # image_path = os.path.abspath(os.path.join(base_path, 'tmp/test_image.jpg'))
-        # with open(image_path, "rb") as f:
-        #     response = client.post("/users", json=user, files={"file": ("image", f, "image/jpg")})
-        #     print(response.json(), response.status_code)
-
-        # base_path = os.path.dirname(__file__)
-        # image_path = os.path.abspath(os.path.join(base_path, 'tmp/test_image.jpg'))
-        # _test_upload_file = Path(image_path)
-        # _files = {'image': _test_upload_file.open('rb')}
-        # response = client.post('/users', json=user, files=_files)
-
-        # print(response.status_code)
-        # print(response.json())
-        # assert response.status_code == HTTPStatus.CREATED
-        # assert response.json() == {
-        #     "id": 1,
-        #     "name": "Elvis",
-        #     "email": "elvis@gmail.com",
-        #     "image": None
-        # }
+        print(response.__dict__)
 
     @pytest.mark.skip
     def test_get_specific_user(self, client):

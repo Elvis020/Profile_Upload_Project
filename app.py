@@ -1,9 +1,12 @@
 from typing import Optional
+import inspect
 
-from fastapi import UploadFile, FastAPI, File
+from fastapi import UploadFile, FastAPI, File,Form
 from fastapi import status, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from starlette.responses import RedirectResponse
+from typing import Dict, Type
 
 from db import Base, engine, SessionLocal
 from models.User import User
@@ -12,6 +15,7 @@ from utils.utils import create_user_object
 
 app = FastAPI()
 Base.metadata.create_all(engine)
+
 
 
 def get_db():
@@ -46,8 +50,8 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 
 
 @app.post("/users", tags=["Users"], status_code=status.HTTP_201_CREATED)
-async def create_user(user: UserInputModel, image: UploadFile = File(None), db: Session = Depends(get_db)):
-    print(user)
+async def create_user(user: UserInputModel = Depends(UserInputModel.as_form), image: UploadFile = File(None), db: Session = Depends(get_db)):
+    print('user:', user)
     new_user = await create_user_object(user, image)
     if new_user is not None:
         db.add(new_user)
